@@ -17,7 +17,7 @@ func main() {
 	app := backend.NewApp()
 
 	// Create application with options
-	err := wails.Run(&options.App{
+	err := wails.Run(&options.App   {
 		Title:     "productisusi",
 		Width:     800,
 		Height:    600,

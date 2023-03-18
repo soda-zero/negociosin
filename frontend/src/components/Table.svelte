@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Modal, modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+    import { modalStore, type ModalSettings } from "@skeletonlabs/skeleton";
     let tableArr = [
         {
             position: "Quilmes",
@@ -8,28 +8,22 @@
             weight: "24kg",
         },
     ];
-    let totalWeight = "100kg";
-
-const alert: ModalSettings = {
-	type: 'alert',
-	// Data
-	title: 'Example Alert',
-	body: 'This is an example modal.',
-	image: 'https://i.imgur.com/WOgTG96.gif',
-};
-const prompt: ModalSettings = {
-	type: 'prompt',
-	// Data
-	title: tableArr[0].position,
-	body: 'Nuevo precio.',
-	// Populates the input value and attributes
-	value: tableArr[0].symbol,
-	valueAttr: { type: 'text', minlength: 3, maxlength: 10, required: true },
-
-	// Returns the updated response value
-	response: (r: string) => console.log('response:', r),
-};
-
+    const prompt: ModalSettings = {
+        type: "prompt",
+        // Data
+        title: tableArr[0].position,
+        body: "Nuevo precio.",
+        // Populates the input value and attributes
+        value: tableArr[0].symbol,
+        valueAttr: {
+            type: "text",
+            minlength: 3,
+            maxlength: 10,
+            required: true,
+        },
+        // Returns the updated response value
+        response: (r: string) => console.log("response:", r),
+    };
 </script>
 
 <!-- Responsive Container (recommended) -->
@@ -45,13 +39,16 @@ const prompt: ModalSettings = {
             </tr>
         </thead>
         <tbody>
-            {#each tableArr as row, i}
+            {#each tableArr as row}
                 <tr>
                     <td>{row.position}</td>
                     <td>{row.name}</td>
                     <td>{row.symbol}$</td>
                     <td class="flex items-center">
-                        <button on:click={() => modalStore.trigger(prompt)} class='btn variant-filled'>Modificar</button>
+                        <button
+                            on:click={() => modalStore.trigger(prompt)}
+                            class="btn variant-filled">Modificar</button
+                        >
                     </td>
                 </tr>
             {/each}

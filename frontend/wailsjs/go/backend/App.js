@@ -5,3 +5,7 @@
 export function Database() {
   return window['go']['backend']['App']['Database']();
 }
+
+export function GetInfo() {
+  return window['go']['backend']['App']['GetInfo']();
+}
