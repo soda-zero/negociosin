@@ -13,12 +13,10 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	app := backend.NewApp()
-    defer app.Close()
+	defer app.Close()
 
-	// Create application with options
-	err := wails.Run(&options.App   {
+	err := wails.Run(&options.App{
 		Title:     "productisusi",
 		Width:     800,
 		Height:    600,

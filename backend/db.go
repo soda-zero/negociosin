@@ -19,45 +19,37 @@ type Product struct {
 	Updated_at time.Time `json:"updated_at,omitempty"`
 }
 
-func (a *App) Database() {
+func (a *App) Database() error {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		log.Fatal("Failed to get User Config Directory")
+		return fmt.Errorf("failed to get User Config Directory: %w", err)
 	}
 	configFolder := filepath.Join(configDir, "productsusi")
 	if err := os.MkdirAll(configFolder, 0755); err != nil {
-		log.Fatal("Error creating folder", err)
+		return fmt.Errorf("error creating folder: %w", err)
 	}
 	a.db, err = sql.Open("sqlite3", configFolder+"/test.db")
 	if err != nil {
-		log.Fatal("Error opening database connection", err)
+		return fmt.Errorf("error opening database connection: %w", err)
 	}
 	if err = a.db.Ping(); err != nil {
-		log.Fatal("Error pinging database", err)
+		return fmt.Errorf("error pinging database: %w", err)
 	}
 	_, err = a.db.Exec(`
-		CREATE TABLE IF NOT EXISTS products (
-			id INTEGER PRIMARY KEY,
-			name TEXT NOT NULL,
-			cost_price REAL NOT NULL,
-			provider TEXT,
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            cost_price REAL NOT NULL,
+            provider TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`)
+        );
+    `)
 	if err != nil {
-		log.Fatal("Error creating the database table", err)
+		return fmt.Errorf("error creating the database table: %w", err)
 	}
-	defer func() {
-		err := a.db.Close()
-		if err != nil {
-			log.Println("Error closing database:", err)
-		} else {
-			log.Println("Database connection closed successfully")
-		}
-	}()
+	return nil
 }
-
 func (a *App) CreateProduct(product Product) {
 	insertSql := `INSERT INTO products(name, cost_price, provider) VALUES (?, ?, ?)`
 	statement, err := a.db.Prepare(insertSql)
@@ -71,7 +63,6 @@ func (a *App) CreateProduct(product Product) {
 		fmt.Println("The product was created")
 	}
 }
-
 func (a *App) GetProductById(id int) Product {
 	var product Product
 	query := `SELECT * FROM products WHERE id = ?`
