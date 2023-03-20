@@ -5,9 +5,9 @@ export namespace backend {
 	    name?: string;
 	    cost_price?: number;
 	    provider?: string;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at?: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at?: any;
 	
 	    static createFrom(source: any = {}) {
@@ -41,6 +41,18 @@ export namespace backend {
 		    }
 		    return a;
 		}
+	}
+	export class Provider {
+	    name?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Provider(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	    }
 	}
 
 }

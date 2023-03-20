@@ -18,6 +18,9 @@ type Product struct {
 	Created_at time.Time `json:"created_at,omitempty"`
 	Updated_at time.Time `json:"updated_at,omitempty"`
 }
+type Provider struct {
+	Name string `json:"name,omitempty"`
+}
 
 func (a *App) Database() error {
 	configDir, err := os.UserConfigDir()
@@ -51,8 +54,8 @@ func (a *App) Database() error {
 	return nil
 }
 func (a *App) CreateProduct(product Product) {
-	insertSql := `INSERT INTO products(name, cost_price, provider) VALUES (?, ?, ?)`
-	statement, err := a.db.Prepare(insertSql)
+	query := `INSERT INTO products(name, cost_price, provider) VALUES (?, ?, ?)`
+	statement, err := a.db.Prepare(query)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,12 +114,56 @@ func (a *App) DeleteProduct(id int) {
 }
 
 func (a *App) UpdateProduct(id int, product Product) {
-	query := `UPDATE products SET name = COALESCE(?, name), cost_price = COALESCE(?, cost_price), provider = COALESCE(?, provider), updated_at = ? WHERE id = ?`
+	query := `UPDATE products SET name = COALESCE(?, name), cost_price = COALESCE(?, cost_price), provider = COALESCE(?, provider)  WHERE id = ?`
 	statement, err := a.db.Prepare(query)
 	if err != nil {
 		log.Fatal(err)
 	}
-	result, err := statement.Exec(product.Name, id, product.Cost_price, product.Updated_at, product.Provider)
+	result, err := statement.Exec(product.Name, id, product.Cost_price, product.Provider)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected == 0 {
+		fmt.Println("No product was updated.")
+	} else {
+
+		fmt.Println("The product was updated.")
+	}
+
+}
+func (a *App) GetProviders() []Provider {
+	query := `SELECT provider FROM products ORDER BY id`
+	var providers []Provider
+	rows, err := a.db.Query(query)
+	if err != nil {
+		return []Provider{}
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var provider Provider
+		if err := rows.Scan(&provider.Name); err != nil {
+			log.Fatal("Couldn't query it sorry", err)
+			return []Provider{}
+		}
+		providers = append(providers, provider)
+	}
+	return providers
+}
+
+func (a *App) UpdateByProvider(value float32, provider string) {
+	fmt.Printf("Received provider: %+v\n", provider)
+	query := `UPDATE products 
+                SET cost_price = cost_price * (1 + (? / 100)) 
+                WHERE provider = ?`
+	statement, err := a.db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	result, err := statement.Exec(value, provider)
 	if err != nil {
 		log.Fatal(err)
 	}

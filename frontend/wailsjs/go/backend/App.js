@@ -26,6 +26,14 @@ export function GetProductById(arg1) {
   return window['go']['backend']['App']['GetProductById'](arg1);
 }
 
+export function GetProviders() {
+  return window['go']['backend']['App']['GetProviders']();
+}
+
+export function UpdateByProvider(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateByProvider'](arg1, arg2);
+}
+
 export function UpdateProduct(arg1, arg2) {
   return window['go']['backend']['App']['UpdateProduct'](arg1, arg2);
 }

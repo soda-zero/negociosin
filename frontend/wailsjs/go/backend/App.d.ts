@@ -14,4 +14,8 @@ export function GetAllProducts():Promise<Array<backend.Product>>;
 
 export function GetProductById(arg1:number):Promise<backend.Product>;
 
+export function GetProviders():Promise<Array<backend.Provider>>;
+
+export function UpdateByProvider(arg1:number,arg2:string):Promise<void>;
+
 export function UpdateProduct(arg1:number,arg2:backend.Product):Promise<void>;
