@@ -4,17 +4,23 @@ import {backend} from '../models';
 
 export function Close():Promise<void>;
 
+export function CreateCategory(arg1:backend.Category):Promise<void>;
+
 export function CreateProduct(arg1:backend.Product):Promise<void>;
 
 export function Database():Promise<void>;
 
-export function DeleteProduct(arg1:number):Promise<void>;
+export function DeleteCategoryById(arg1:number):Promise<void>;
 
-export function GetAllProducts():Promise<Array<backend.Product>>;
+export function DeleteProductById(arg1:number):Promise<void>;
+
+export function GetAllCategories():Promise<Array<backend.Category>>;
+
+export function GetAllProducts():Promise<Array<backend.ProductWithCategory>>;
+
+export function GetAllProviders():Promise<Array<backend.Provider>>;
 
 export function GetProductById(arg1:number):Promise<backend.Product>;
-
-export function GetProviders():Promise<Array<backend.Provider>>;
 
 export function UpdateByProvider(arg1:number,arg2:string):Promise<void>;
 

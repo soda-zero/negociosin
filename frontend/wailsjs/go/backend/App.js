@@ -6,6 +6,10 @@ export function Close() {
   return window['go']['backend']['App']['Close']();
 }
 
+export function CreateCategory(arg1) {
+  return window['go']['backend']['App']['CreateCategory'](arg1);
+}
+
 export function CreateProduct(arg1) {
   return window['go']['backend']['App']['CreateProduct'](arg1);
 }
@@ -14,20 +18,28 @@ export function Database() {
   return window['go']['backend']['App']['Database']();
 }
 
-export function DeleteProduct(arg1) {
-  return window['go']['backend']['App']['DeleteProduct'](arg1);
+export function DeleteCategoryById(arg1) {
+  return window['go']['backend']['App']['DeleteCategoryById'](arg1);
+}
+
+export function DeleteProductById(arg1) {
+  return window['go']['backend']['App']['DeleteProductById'](arg1);
+}
+
+export function GetAllCategories() {
+  return window['go']['backend']['App']['GetAllCategories']();
 }
 
 export function GetAllProducts() {
   return window['go']['backend']['App']['GetAllProducts']();
 }
 
-export function GetProductById(arg1) {
-  return window['go']['backend']['App']['GetProductById'](arg1);
+export function GetAllProviders() {
+  return window['go']['backend']['App']['GetAllProviders']();
 }
 
-export function GetProviders() {
-  return window['go']['backend']['App']['GetProviders']();
+export function GetProductById(arg1) {
+  return window['go']['backend']['App']['GetProductById'](arg1);
 }
 
 export function UpdateByProvider(arg1, arg2) {
