@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { loadProducts, providerStore } from "../lib/store";
     import { onDestroy } from "svelte";
-    import { UpdateByProvider } from "../../wailsjs/go/backend/App";
-    import type { backend } from "wailsjs/go/models";
     import type { ModalProps } from "@skeletonlabs/skeleton/utilities/Modal/Modal.svelte";
+    import type { backend } from "$wails/go/models";
+    import { loadProducts, providerStore } from "$lib/store";
+    import { UpdateByProvider } from "$wails/go/backend/App";
 
     export let parent: ModalProps;
 
@@ -17,8 +17,7 @@
     }
     let provider = undefined;
     let percentage = 0;
-    async function updateByProvider(e: Event) {
-        e.preventDefault();
+    async function updateByProvider() {
         await UpdateByProvider(percentage, provider);
         await loadProducts();
         resetForm();
@@ -30,12 +29,10 @@
     });
 </script>
 
-<form
-    on:submit={updateByProvider}
-    class="flex flex-col gap-2 card p-4 w-modal shadow-xl space-y-4 "
->
+<form class="flex flex-col gap-2 card p-4 w-modal shadow-xl space-y-4 ">
     <div class="flex justify-end">
         <button
+            type="button"
             class="btn-icon btn-icon-sm {parent.buttonNeutral} "
             on:click={parent.onClose}>{parent.buttonTextCancel}</button
         >
@@ -58,7 +55,13 @@
             <input class="input" type="number" bind:value={percentage} />
         </label>
     </div>
-    <button class="w-full variant-filled-secondary btn"
+    <button
+        type="button"
+        on:click={(e) => {
+            e.preventDefault();
+            updateByProvider();
+        }}
+        class="w-full variant-filled-secondary btn"
         >Aumentar precio en {percentage | 0}%</button
     >
 </form>

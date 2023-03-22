@@ -8,20 +8,28 @@ export function CreateCategory(arg1:backend.Category):Promise<void>;
 
 export function CreateProduct(arg1:backend.Product):Promise<void>;
 
+export function CreateProvider(arg1:backend.Provider):Promise<void>;
+
 export function Database():Promise<void>;
 
 export function DeleteCategoryById(arg1:number):Promise<void>;
 
 export function DeleteProductById(arg1:number):Promise<void>;
 
+export function DeleteProviderById(arg1:number):Promise<void>;
+
 export function GetAllCategories():Promise<Array<backend.Category>>;
 
-export function GetAllProducts():Promise<Array<backend.ProductWithCategory>>;
+export function GetAllProducts():Promise<Array<backend.ProductWithCategoryAndProvider>>;
 
 export function GetAllProviders():Promise<Array<backend.Provider>>;
 
-export function GetProductById(arg1:number):Promise<any>;
+export function GetProductById(arg1:number):Promise<backend.Product>;
 
 export function UpdateByProvider(arg1:number,arg2:string):Promise<void>;
 
-export function UpdateProduct(arg1:number,arg2:backend.Product):Promise<void>;
+export function UpdateCategoryById(arg1:number,arg2:backend.Category):Promise<void>;
+
+export function UpdateProductById(arg1:number,arg2:backend.Product):Promise<void>;
+
+export function UpdateProviderById(arg1:number,arg2:backend.Provider):Promise<void>;

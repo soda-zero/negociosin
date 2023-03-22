@@ -1,37 +1,28 @@
 <script lang="ts">
-    import { CreateCategory } from "../../wailsjs/go/backend/App";
-    import { loadProducts } from "../lib/store";
-    import { backend } from "../../wailsjs/go/models";
+    import { loadProducts } from "$lib/store";
+    import { UpdateCategoryById } from "$wails/go/backend/App";
+    import type { backend } from "$wails/go/models";
     import type { ModalProps } from "@skeletonlabs/skeleton/utilities/Modal/Modal.svelte";
 
     export let parent: ModalProps;
-
-    function resetForm() {
-        category.name = undefined;
-        category.profit_percent = undefined;
-    }
-
-    let category = new backend.Category();
-    async function createCategory(e: Event) {
+    export let category: backend.Category;
+    async function updateCategory(e: Event) {
         e.preventDefault();
-        await CreateCategory(category);
+        await UpdateCategoryById(category.id, category);
         await loadProducts();
-        resetForm();
         parent.onClose();
     }
 </script>
 
-<form
-    on:submit={createCategory}
-    class="flex flex-col gap-2 card p-4 w-modal-slim shadow-xl space-y-4 "
->
+<form class="flex flex-col gap-2 card p-4 w-modal-slim shadow-xl space-y-4 ">
     <div class="flex justify-end">
         <button
+            type="button"
             class="btn-icon btn-icon-sm {parent.buttonNeutral} "
             on:click={parent.onClose}>{parent.buttonTextCancel}</button
         >
     </div>
-    <h2>Agregar Categoría</h2>
+    <h2>Modificar Categoría</h2>
     <div>
         <label class="label">
             <span>Nombre de la categoría:</span>
@@ -52,5 +43,9 @@
             />
         </label>
     </div>
-    <button class="w-full btn btn- variant-filled-secondary">Agregar</button>
+    <button
+        type="button"
+        on:click={updateCategory}
+        class="w-full btn btn- variant-filled-secondary">Modificar</button
+    >
 </form>

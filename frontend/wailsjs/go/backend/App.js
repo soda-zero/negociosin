@@ -14,6 +14,10 @@ export function CreateProduct(arg1) {
   return window['go']['backend']['App']['CreateProduct'](arg1);
 }
 
+export function CreateProvider(arg1) {
+  return window['go']['backend']['App']['CreateProvider'](arg1);
+}
+
 export function Database() {
   return window['go']['backend']['App']['Database']();
 }
@@ -24,6 +28,10 @@ export function DeleteCategoryById(arg1) {
 
 export function DeleteProductById(arg1) {
   return window['go']['backend']['App']['DeleteProductById'](arg1);
+}
+
+export function DeleteProviderById(arg1) {
+  return window['go']['backend']['App']['DeleteProviderById'](arg1);
 }
 
 export function GetAllCategories() {
@@ -46,6 +54,14 @@ export function UpdateByProvider(arg1, arg2) {
   return window['go']['backend']['App']['UpdateByProvider'](arg1, arg2);
 }
 
-export function UpdateProduct(arg1, arg2) {
-  return window['go']['backend']['App']['UpdateProduct'](arg1, arg2);
+export function UpdateCategoryById(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateCategoryById'](arg1, arg2);
+}
+
+export function UpdateProductById(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateProductById'](arg1, arg2);
+}
+
+export function UpdateProviderById(arg1, arg2) {
+  return window['go']['backend']['App']['UpdateProviderById'](arg1, arg2);
 }

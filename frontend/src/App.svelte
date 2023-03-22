@@ -1,8 +1,13 @@
 <script lang="ts">
-    import { Database } from "../wailsjs/go/backend/App";
-    import CreateProduct from "./components/CreateProduct.svelte";
-    import ProductActions from "./components/ProductActions.svelte";
-    import ProductTable from "./components/ProductTable.svelte";
+    import CategoryTable from "$components/CategoryTable.svelte";
+    import PlusIcon from "$components/icons/PlusIcon.svelte";
+    import CreateCategoryModal from "$components/modals/CreateCategoryModal.svelte";
+    import CreateProductModal from "$components/modals/CreateProductModal.svelte";
+    import CreateProviderModal from "$components/modals/CreateProviderModal.svelte";
+    import ProductActions from "$components/ProductActions.svelte";
+    import ProductTable from "$components/ProductTable.svelte";
+    import ProviderTable from "$components/ProviderTable.svelte";
+    import { Database } from "$wails/go/backend/App";
     import {
         AppRail,
         AppRailTile,
@@ -12,10 +17,7 @@
         type ModalComponent,
         type ModalSettings,
     } from "@skeletonlabs/skeleton";
-    import PlusIcon from "./components/PlusIcon.svelte";
-    import CreateCategory from "./components/CreateCategory.svelte";
     import { writable, type Writable } from "svelte/store";
-    import CategoryTable from "./components/CategoryTable.svelte";
     async function ConnectDB() {
         return await Database();
     }
@@ -35,7 +37,7 @@
     }
     function modalCreateProduct(): void {
         const c: ModalComponent = {
-            ref: CreateProduct,
+            ref: CreateProductModal,
         };
         const d: ModalSettings = {
             buttonTextCancel: "X",
@@ -47,7 +49,7 @@
     }
     function modalCreateCategory(): void {
         const c: ModalComponent = {
-            ref: CreateCategory,
+            ref: CreateCategoryModal,
         };
         const d: ModalSettings = {
             buttonTextCancel: "X",
@@ -57,9 +59,22 @@
         };
         modalStore.trigger(d);
     }
+    function modalCreateProvider(): void {
+        const c: ModalComponent = {
+            ref: CreateProviderModal,
+        };
+        const d: ModalSettings = {
+            buttonTextCancel: "X",
+            type: "component",
+            component: c,
+            title: "Create Provider Modal Component",
+        };
+        modalStore.trigger(d);
+    }
     let items = [
         { label: "Productos", value: 1, component: ProductTable },
         { label: "Categorías", value: 2, component: CategoryTable },
+        { label: "Proveedores", value: 3, component: ProviderTable },
     ];
     $: selectedTab = $storeValue;
     const storeValue: Writable<number> = writable(1);
@@ -109,6 +124,11 @@
                                     class="btn  variant-filled-primary"
                                     on:click={modalCreateCategory}
                                     >Agregar Categoria <PlusIcon /></button
+                                >
+                                <button
+                                    class="btn  variant-filled-primary"
+                                    on:click={modalCreateProvider}
+                                    >Agregar Proveedor<PlusIcon /></button
                                 >
                             </div>
                         {/if}
