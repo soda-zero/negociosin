@@ -12,6 +12,9 @@
         product.provider = "";
         product.cost_price = undefined;
         product.category_id = undefined;
+        product.iva = undefined;
+        product.internal_tax = undefined;
+        product.quantity = 0;
     }
 
     let product = new backend.Product();
@@ -20,7 +23,7 @@
         await CreateProduct(product);
         await loadProducts();
         resetForm();
-        parent.onClose()
+        parent.onClose();
     }
 
     let categoryList: backend.Category[] = [];
@@ -28,7 +31,9 @@
         categoryList = categories;
     });
 
-    onDestroy(() => unsubscribe);
+    onDestroy(() => {
+        unsubscribe();
+    });
 </script>
 
 <form
@@ -59,6 +64,36 @@
                 placeholder="100..."
                 class="input"
                 bind:value={product.cost_price}
+                step="0.001"
+            />
+        </label>
+        <label class="label">
+            <span>Cantidad</span>
+            <input
+                type="number"
+                placeholder="1,2,3..."
+                class="input"
+                bind:value={product.quantity}
+            />
+        </label>
+        <label class="label">
+            <span>Imp. Interno</span>
+            <input
+                type="number"
+                placeholder="1,2,3..."
+                class="input"
+                bind:value={product.internal_tax}
+                step="0.001"
+            />
+        </label>
+        <label class="label">
+            <span>Iva</span>
+            <input
+                type="number"
+                placeholder="21..."
+                class="input"
+                bind:value={product.iva}
+                step="0.001"
             />
         </label>
 

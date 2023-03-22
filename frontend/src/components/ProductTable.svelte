@@ -4,7 +4,9 @@
     import type { backend } from "../../wailsjs/go/models";
     import { DeleteProductById } from "../../wailsjs/go/backend/App";
     import TrashIcon from "./TrashIcon.svelte";
+    import EditIcon from "./EditIcon.svelte";
 
+    onMount(() => loadProducts());
     function roundPrice(num: number) {
         const roundedNum = Math.round(num * 2) / 2;
         return roundedNum;
@@ -19,15 +21,13 @@
         }
     });
 
-    onMount(() => {
-        loadProducts();
-    });
-
-    onDestroy(() => {
-        unsubscribe();
-    });
     async function DeleteProduct(id: number) {
         await DeleteProductById(id);
+        const index = productsList.findIndex((product) => product.id === id);
+        if (index !== -1) {
+            productsList.splice(index, 1);
+            filterProducts();
+        }
         await loadProducts();
     }
 
@@ -56,6 +56,9 @@
             );
         });
     }
+    onDestroy(() => {
+        unsubscribe();
+    });
 </script>
 
 <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
@@ -92,7 +95,7 @@
                     <td class="capitalize">{product.name.toLowerCase()}</td>
                     <td>{new Date(product.updated_at).toLocaleString()}</td>
                     <td class="capitalize">{product.provider.toLowerCase()}</td>
-                    <td>{roundPrice(product.cost_price)}</td>
+                    <td>{product.cost_price}</td>
                     <td
                         >{`${roundPrice(product.sell_price)}${" "}(${
                             product.category_profit_percent
@@ -103,6 +106,12 @@
                     </td>
                     <td
                         ><button
+                            class=" bg-initial hover:text-success-400"
+                            on:click={() => DeleteProduct(product.id)}
+                            ><EditIcon /></button
+                        >
+
+                        <button
                             class=" bg-initial hover:text-error-400"
                             on:click={() => DeleteProduct(product.id)}
                             ><TrashIcon /></button

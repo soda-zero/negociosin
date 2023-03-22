@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { loadProducts, categoryStore } from "../lib/store";
-    import { onDestroy, onMount } from "svelte";
+    import { categoryStore } from "../lib/store";
+    import { onDestroy } from "svelte";
     import type { backend } from "../../wailsjs/go/models";
     import { DeleteCategoryById } from "../../wailsjs/go/backend/App";
     import TrashIcon from "./TrashIcon.svelte";
 
     let categoryList: backend.Category[] = [];
     let filteredCategoryList: backend.Category[] = [];
+    filteredCategoryList = categoryList || [];
     let searchQuery: string = "";
     const unsubscribe = categoryStore.subscribe((categories) => {
         categoryList = categories;
@@ -15,17 +16,17 @@
         }
     });
 
-    onMount(() => {
-        loadProducts();
-    });
-
+    async function DeleteCategory(id: number) {
+        await DeleteCategoryById(id);
+        const index = categoryList.findIndex((product) => product.id === id);
+        if (index !== -1) {
+            categoryList.splice(index, 1);
+            filterCategories();
+        }
+    }
     onDestroy(() => {
         unsubscribe();
     });
-    async function DeleteProduct(id: number) {
-        await DeleteCategoryById(id);
-        await loadProducts();
-    }
 
     function filterCategories() {
         filteredCategoryList = categoryList.filter((category) => {
@@ -72,21 +73,24 @@
             </tr>
         </thead>
         <tbody>
-            {#each filteredCategoryList as category}
-                <tr>
-                    <td>{category.id}</td>
-                    <td>{category.name}</td>
-                    <td>{new Date(category.updated_at).toLocaleString()}</td>
-                    <td>{category.profit_percent}%</td>
-                    <td
-                        ><button
-                            class=" bg-initial hover:text-error-400"
-                            on:click={() => DeleteProduct(category.id)}
-                            ><TrashIcon /></button
-                        ></td
-                    >
-                </tr>
-            {/each}
+            {#if filteredCategoryList != null}
+                {#each filteredCategoryList as category}
+                    <tr>
+                        <td>{category.id}</td>
+                        <td>{category.name}</td>
+                        <td>{new Date(category.updated_at).toLocaleString()}</td
+                        >
+                        <td>{category.profit_percent}%</td>
+                        <td
+                            ><button
+                                class=" bg-initial hover:text-error-400"
+                                on:click={() => DeleteCategory(category.id)}
+                                ><TrashIcon /></button
+                            ></td
+                        >
+                    </tr>
+                {/each}
+            {/if}
         </tbody>
     </table>
 </div>

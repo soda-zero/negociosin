@@ -4,9 +4,9 @@ export namespace backend {
 	    id?: number;
 	    name?: string;
 	    profit_percent?: number;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at?: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at?: any;
 	
 	    static createFrom(source: any = {}) {
@@ -47,9 +47,12 @@ export namespace backend {
 	    sell_price?: number;
 	    provider?: string;
 	    category_id?: number;
-	    // Go type: time.Time
+	    quantity?: number;
+	    iva?: number;
+	    internal_tax?: number;
+	    // Go type: time
 	    created_at?: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at?: any;
 	
 	    static createFrom(source: any = {}) {
@@ -64,6 +67,9 @@ export namespace backend {
 	        this.sell_price = source["sell_price"];
 	        this.provider = source["provider"];
 	        this.category_id = source["category_id"];
+	        this.quantity = source["quantity"];
+	        this.iva = source["iva"];
+	        this.internal_tax = source["internal_tax"];
 	        this.created_at = this.convertValues(source["created_at"], null);
 	        this.updated_at = this.convertValues(source["updated_at"], null);
 	    }
@@ -93,12 +99,15 @@ export namespace backend {
 	    sell_price?: number;
 	    provider?: string;
 	    category_id?: number;
-	    // Go type: time.Time
-	    created_at?: any;
-	    // Go type: time.Time
-	    updated_at?: any;
+	    quantity?: number;
+	    iva?: number;
+	    internal_tax?: number;
 	    category_name?: string;
 	    category_profit_percent?: number;
+	    // Go type: time
+	    created_at?: any;
+	    // Go type: time
+	    updated_at?: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new ProductWithCategory(source);
@@ -112,10 +121,13 @@ export namespace backend {
 	        this.sell_price = source["sell_price"];
 	        this.provider = source["provider"];
 	        this.category_id = source["category_id"];
-	        this.created_at = this.convertValues(source["created_at"], null);
-	        this.updated_at = this.convertValues(source["updated_at"], null);
+	        this.quantity = source["quantity"];
+	        this.iva = source["iva"];
+	        this.internal_tax = source["internal_tax"];
 	        this.category_name = source["category_name"];
 	        this.category_profit_percent = source["category_profit_percent"];
+	        this.created_at = this.convertValues(source["created_at"], null);
+	        this.updated_at = this.convertValues(source["updated_at"], null);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

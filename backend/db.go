@@ -11,14 +11,17 @@ import (
 )
 
 type Product struct {
-	Id          int       `json:"id,omitempty"`
-	Name        string    `json:"name,omitempty"`
-	Cost_price  float32   `json:"cost_price,omitempty"`
-	Sell_price  float32   `json:"sell_price,omitempty"`
-	Provider    string    `json:"provider,omitempty"`
-	Category_id int       `json:"category_id,omitempty"`
-	Created_at  time.Time `json:"created_at,omitempty"`
-	Updated_at  time.Time `json:"updated_at,omitempty"`
+	Id           int       `json:"id,omitempty"`
+	Name         string    `json:"name,omitempty"`
+	Cost_price   float32   `json:"cost_price,omitempty"`
+	Sell_price   float32   `json:"sell_price,omitempty"`
+	Provider     string    `json:"provider,omitempty"`
+	Category_id  int       `json:"category_id,omitempty"`
+	Quantity     int       `json:"quantity,omitempty"`
+	Iva          float32   `json:"iva,omitempty"`
+	Internal_tax float32   `json:"internal_tax,omitempty"`
+	Created_at   time.Time `json:"created_at,omitempty"`
+	Updated_at   time.Time `json:"updated_at,omitempty"`
 }
 type ProductWithCategory struct {
 	Id                      int       `json:"id,omitempty"`
@@ -27,10 +30,13 @@ type ProductWithCategory struct {
 	Sell_price              float32   `json:"sell_price,omitempty"`
 	Provider                string    `json:"provider,omitempty"`
 	Category_id             int       `json:"category_id,omitempty"`
-	Created_at              time.Time `json:"created_at,omitempty"`
-	Updated_at              time.Time `json:"updated_at,omitempty"`
+	Quantity                int       `json:"quantity,omitempty"`
+	Iva                     float32   `json:"iva,omitempty"`
+	Internal_tax            float32   `json:"internal_tax,omitempty"`
 	Category_Name           string    `json:"category_name,omitempty"`
 	Category_Profit_percent float32   `json:"category_profit_percent,omitempty"`
+	Created_at              time.Time `json:"created_at,omitempty"`
+	Updated_at              time.Time `json:"updated_at,omitempty"`
 }
 
 type Provider struct {
@@ -81,6 +87,9 @@ func (a *App) Database() error {
             sell_price REAL,
             provider TEXT,
             category_id INTEGER,
+            quantity INTEGER,
+            iva REAL,
+            internal_tax REAL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (category_id) REFERENCES category(id)
@@ -88,45 +97,20 @@ func (a *App) Database() error {
         `
 
 	createPriceUpdateTriggerQuery := `
-        CREATE TRIGGER IF NOT EXISTS update_sell_price
+        CREATE TRIGGER update_sell_price
             AFTER INSERT ON product
             BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + (SELECT profit_percent / 100 FROM category WHERE category.id = NEW.category_id)) 
-                WHERE id = NEW.id;
+                UPDATE product SET cost_price = cost_price + (cost_price * (iva / 100)) + internal_tax WHERE id = NEW.id;
+                UPDATE product SET cost_price = cost_price / quantity WHERE id = NEW.id;
+                UPDATE product SET sell_price = cost_price * (1 + (SELECT profit_percent / 100 FROM category WHERE category.id = NEW.category_id)) WHERE id = NEW.id;
         END;
 
-        CREATE TRIGGER IF NOT EXISTS update_sell_price_category
+        CREATE TRIGGER update_sell_price_on_category_update
             AFTER UPDATE OF profit_percent ON category
             BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + NEW.profit_percent / 100) WHERE category_id = NEW.id;
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS update_sell_price_compound
-            AFTER INSERT ON product
-            BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + (SELECT profit_percent FROM category WHERE category.id = NEW.category_id) / 100) WHERE id = NEW.id;
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS update_sell_price_before_update_category
-            BEFORE UPDATE OF profit_percent ON category
-            BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + NEW.profit_percent / 100) WHERE category_id = OLD.id;
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS update_sell_price_after_update_category
-            AFTER UPDATE OF profit_percent ON category
-            BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + NEW.profit_percent / 100) WHERE category_id = NEW.id;
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS update_sell_price_on_cost_price_change
-            AFTER UPDATE OF cost_price ON product
-            BEGIN
-                UPDATE product SET sell_price = cost_price * (1 + (SELECT profit_percent / 100 FROM category WHERE category.id = NEW.category_id)) 
-                WHERE id = NEW.id;
+                UPDATE product SET sell_price = sell_price / (1 + (OLD.profit_percent / 100)) * (1 + (NEW.profit_percent / 100)) WHERE category_id = NEW.id;
         END;
         `
-
 	_, err = a.db.Exec(createCategoryTableQuery)
 	if err != nil {
 		return fmt.Errorf("Error creating category table: %w", err)
@@ -145,11 +129,11 @@ func (a *App) Database() error {
 	return nil
 }
 func (a *App) CreateProduct(product Product) error {
-	query := `INSERT INTO product(name, cost_price, provider, category_id) VALUES (?, ?, ?, ?)`
+	query := `INSERT INTO product(name, cost_price, provider, category_id, quantity, iva, internal_tax) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	statement, err := a.db.Prepare(query)
 	defer statement.Close()
 
-	result, err := statement.Exec(product.Name, product.Cost_price, product.Provider, product.Category_id)
+	result, err := statement.Exec(product.Name, product.Cost_price, product.Provider, product.Category_id, product.Quantity, product.Iva, product.Internal_tax)
 	if err != nil {
 		return fmt.Errorf("Error executing query: %w", err)
 	}
@@ -169,7 +153,7 @@ func (a *App) CreateProduct(product Product) error {
 func (a *App) GetProductById(id int) (*Product, error) {
 	var product Product
 	query := `SELECT * FROM product WHERE id = ?`
-	err := a.db.QueryRow(query, id).Scan(&product.Id, &product.Provider, &product.Updated_at, &product.Created_at, &product.Name, &product.Cost_price)
+	err := a.db.QueryRow(query, id).Scan(&product.Id, &product.Provider, &product.Updated_at, &product.Created_at, &product.Name, &product.Cost_price, &product.Quantity, &product.Iva, &product.Internal_tax)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("Product with ID %d not found", id)
@@ -187,19 +171,22 @@ func (a *App) GetAllProducts() ([]ProductWithCategory, error) {
 	var products []ProductWithCategory
 	rows, err := a.db.Query(query)
 	if err != nil {
+		fmt.Println(err)
 		return nil, fmt.Errorf("Error querying providers: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var product ProductWithCategory
-		if err := rows.Scan(&product.Id, &product.Name, &product.Cost_price, &product.Sell_price, &product.Provider, &product.Category_id, &product.Created_at, &product.Updated_at, &product.Category_Name, &product.Category_Profit_percent); err != nil {
+		if err := rows.Scan(&product.Id, &product.Name, &product.Cost_price, &product.Sell_price, &product.Provider, &product.Category_id, &product.Quantity, &product.Iva, &product.Internal_tax, &product.Created_at, &product.Updated_at, &product.Category_Name, &product.Category_Profit_percent); err != nil {
+			fmt.Println(err)
 			return nil, fmt.Errorf("Error scanning provider: %w", err)
 
 		}
 		products = append(products, product)
 	}
 
+	fmt.Println(products)
 	return products, nil
 }
 
