@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { categoryStore, loadProducts } from "$lib/store";
+    import { categoryStore, loadCategory, loadProducts } from "$lib/store";
     import { DeleteCategoryById } from "$wails/go/backend/App";
     import type { backend } from "$wails/go/models";
-    import { onDestroy, onMount } from "svelte";
+    import { onMount } from "svelte";
     import TrashIcon from "$components/icons/TrashIcon.svelte";
     import {
         modalStore,
@@ -11,19 +11,38 @@
     } from "@skeletonlabs/skeleton";
     import UpdateCategoryModal from "./modals/UpdateCategoryModal.svelte";
     import EditIcon from "./icons/EditIcon.svelte";
+    import CreateCategoryModal from "./modals/CreateCategoryModal.svelte";
+    import PlusIcon from "./icons/PlusIcon.svelte";
 
-    let categoryList: backend.Category[] = [];
-    let filteredCategoryList: backend.Category[] = [];
-    filteredCategoryList = categoryList || [];
     let searchQuery: string = "";
-    const unsubscribe = categoryStore.subscribe((categories) => {
-        categoryList = categories;
-        if (categoryList !== null) {
-            filterCategories();
-        }
+    let categories: backend.Category[] = [];
+    $: categories = $categoryStore;
+    let filteredCategories = [];
+
+    async function initalizeData() {
+        await loadCategory();
+        filteredCategories = categories;
+    }
+    onMount(async () => {
+        await initalizeData();
     });
 
-    async function DeleteCategory(id: number) {
+    function createCategory() {
+        const c: ModalComponent = {
+            ref: CreateCategoryModal,
+        };
+        const d: ModalSettings = {
+            buttonTextCancel: "X",
+            type: "component",
+            component: c,
+            response: async () => {
+                await loadCategory();
+                filterCategories();
+            },
+        };
+        modalStore.trigger(d);
+    }
+    async function deleteCategory(id: number) {
         const confirm: ModalSettings = {
             type: "confirm",
             title: "Eliminar categoría",
@@ -33,14 +52,8 @@
             response: async (confirmed: boolean) => {
                 if (confirmed) {
                     await DeleteCategoryById(id);
-                    const index = categoryList.findIndex(
-                        (category) => category.id === id
-                    );
-                    if (index !== -1) {
-                        categoryList.splice(index, 1);
-                        filterCategories();
-                    }
-                    await loadProducts();
+                    await loadCategory();
+                    filterCategories();
                 }
             },
         };
@@ -57,37 +70,48 @@
             type: "component",
             component: c,
             title: "Edit Category",
+            response: async () => {
+                await loadCategory();
+                filterCategories();
+            },
         };
         modalStore.trigger(d);
     }
 
     function filterCategories() {
-        filteredCategoryList = categoryList.filter((category) => {
-            const updatedAt = new Date(category.updated_at);
+        if (!categories) {
+            categories = [];
+        }
+        filteredCategories = categories.filter((category) => {
             return (
-                category.name
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                category.profit_percent
-                    .toString()
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                updatedAt
-                    .toLocaleString()
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase())
+                filterByName(category) ||
+                filterByProfitPercent(category) ||
+                filterByUpdatedAt(category)
             );
         });
     }
 
-    onMount(() => {
-        loadProducts();
-    });
-
-    onDestroy(() => {
-        unsubscribe();
-    });
+    function filterByName(category: backend.Category) {
+        return category.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    function filterByProfitPercent(category: backend.Category) {
+        return category.profit_percent
+            .toString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+    }
+    function filterByUpdatedAt(category: backend.Category) {
+        const updatedAt = new Date(category.updated_at);
+        return updatedAt
+            .toLocaleString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+    }
 </script>
+
+<button class="btn  variant-filled-primary" on:click={createCategory}
+    >Agregar Categoría <PlusIcon /></button
+>
 
 <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
     <div class="input-group-shim">Categorías</div>
@@ -97,31 +121,28 @@
         bind:value={searchQuery}
         on:input={filterCategories}
     />
-    <button class="variant-filled-secondary" on:click={filterCategories}
-        >Buscar</button
-    >
 </div>
 
-<div class="table-container">
+<div class="table-container shadow-xl">
     <table class="table table-hover">
         <thead>
             <tr>
                 <th>Cod</th>
                 <th>Nombre categoría</th>
-                <th>Actualizado</th>
                 <th>Porcentaje ganancia</th>
+                <th>Actualizado</th>
                 <th />
             </tr>
         </thead>
         <tbody>
-            {#if filteredCategoryList != null}
-                {#each filteredCategoryList as category}
+            {#if filteredCategories}
+                {#each filteredCategories as category}
                     <tr>
                         <td>{category.id}</td>
                         <td class="capitalize">{category.name}</td>
+                        <td>{category.profit_percent}%</td>
                         <td>{new Date(category.updated_at).toLocaleString()}</td
                         >
-                        <td>{category.profit_percent}%</td>
                         <td>
                             <button
                                 class=" bg-initial hover:text-success-400"
@@ -131,7 +152,7 @@
 
                             <button
                                 class=" bg-initial hover:text-error-400"
-                                on:click={() => DeleteCategory(category.id)}
+                                on:click={() => deleteCategory(category.id)}
                                 ><TrashIcon /></button
                             ></td
                         >

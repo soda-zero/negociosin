@@ -1,13 +1,13 @@
 export namespace backend {
 	
 	export class Category {
-	    id?: number;
-	    name?: string;
-	    profit_percent?: number;
+	    id: number;
+	    name: string;
+	    profit_percent: number;
 	    // Go type: time.Time
-	    created_at?: any;
+	    created_at: any;
 	    // Go type: time.Time
-	    updated_at?: any;
+	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new Category(source);
@@ -41,20 +41,20 @@ export namespace backend {
 		}
 	}
 	export class Product {
-	    id?: number;
-	    name?: string;
-	    original_cost_price?: number;
-	    unit_cost_price?: number;
-	    unit_sell_price?: number;
+	    id: number;
+	    name: string;
+	    original_cost_price: number;
+	    unit_cost_price: number;
+	    unit_sell_price: number;
 	    category_id?: number;
 	    provider_id?: number;
-	    quantity?: number;
-	    iva?: number;
-	    internal_tax?: number;
+	    quantity: number;
+	    iva: number;
+	    internal_tax: number;
 	    // Go type: time.Time
-	    created_at?: any;
+	    created_at: any;
 	    // Go type: time.Time
-	    updated_at?: any;
+	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new Product(source);
@@ -95,21 +95,21 @@ export namespace backend {
 		}
 	}
 	export class ProductWithCategoryAndProvider {
-	    id?: number;
-	    name?: string;
-	    original_cost_price?: number;
-	    unit_cost_price?: number;
+	    id: number;
+	    name: string;
+	    original_cost_price: number;
+	    unit_cost_price: number;
 	    unit_sell_price?: number;
 	    category_id?: number;
 	    provider_id?: number;
-	    quantity?: number;
-	    iva?: number;
-	    internal_tax?: number;
+	    quantity: number;
+	    iva: number;
+	    internal_tax: number;
 	    category_profit_percent?: number;
 	    // Go type: time.Time
-	    created_at?: any;
+	    created_at: any;
 	    // Go type: time.Time
-	    updated_at?: any;
+	    updated_at: any;
 	    category_name?: string;
 	    provider?: string;
 	
@@ -155,13 +155,13 @@ export namespace backend {
 		}
 	}
 	export class Provider {
-	    id?: number;
-	    name?: string;
-	    phone_number?: string;
+	    id: number;
+	    name: string;
+	    phone_number: string;
 	    // Go type: time.Time
-	    created_at?: any;
+	    created_at: any;
 	    // Go type: time.Time
-	    updated_at?: any;
+	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new Provider(source);

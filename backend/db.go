@@ -11,51 +11,52 @@ import (
 )
 
 type Product struct {
-	Id                  int       `json:"id,omitempty"`
-	Name                string    `json:"name,omitempty"`
-	Original_cost_price float32   `json:"original_cost_price,omitempty"`
-	Unit_Cost_price     float32   `json:"unit_cost_price,omitempty"`
-	Unit_Sell_price     float32   `json:"unit_sell_price,omitempty"`
-	Category_id         int       `json:"category_id,omitempty"`
-	Provider_id         int       `json:"provider_id,omitempty"`
-	Quantity            int       `json:"quantity,omitempty"`
-	Iva                 float32   `json:"iva,omitempty"`
-	Internal_tax        float32   `json:"internal_tax,omitempty"`
-	Created_at          time.Time `json:"created_at,omitempty"`
-	Updated_at          time.Time `json:"updated_at,omitempty"`
+	Id                  int       `json:"id"`
+	Name                string    `json:"name"`
+	Original_cost_price float32   `json:"original_cost_price"`
+	Unit_Cost_price     float32   `json:"unit_cost_price"`
+	Unit_Sell_price     float32   `json:"unit_sell_price"`
+	Category_id         *int32    `json:"category_id,omitempty"`
+	Provider_id         *int32    `json:"provider_id,omitempty"`
+	Quantity            int       `json:"quantity"`
+	Iva                 float32   `json:"iva"`
+	Internal_tax        float32   `json:"internal_tax"`
+	Created_at          time.Time `json:"created_at"`
+	Updated_at          time.Time `json:"updated_at"`
 }
+
 type ProductWithCategoryAndProvider struct {
-	Id                      int       `json:"id,omitempty"`
-	Name                    string    `json:"name,omitempty"`
-	Original_cost_price     float32   `json:"original_cost_price,omitempty"`
-	Unit_Cost_price         float32   `json:"unit_cost_price,omitempty"`
-	Unit_Sell_price         float32   `json:"unit_sell_price,omitempty"`
-	Category_id             int       `json:"category_id,omitempty"`
-	Provider_id             int       `json:"provider_id,omitempty"`
-	Quantity                int       `json:"quantity,omitempty"`
-	Iva                     float32   `json:"iva,omitempty"`
-	Internal_Tax            float32   `json:"internal_tax,omitempty"`
-	Category_Profit_Percent float32   `json:"category_profit_percent,omitempty"`
-	Created_at              time.Time `json:"created_at,omitempty"`
-	Updated_at              time.Time `json:"updated_at,omitempty"`
-	Category_Name           string    `json:"category_name,omitempty"`
-	Provider_Name           string    `json:"provider,omitempty"`
+	Id                      int       `json:"id"`
+	Name                    string    `json:"name"`
+	Original_cost_price     float32   `json:"original_cost_price"`
+	Unit_Cost_price         float32   `json:"unit_cost_price"`
+	Unit_Sell_price         *float64  `json:"unit_sell_price"`
+	Category_id             *int32    `json:"category_id,omitempty"`
+	Provider_id             *int32    `json:"provider_id,omitempty"`
+	Quantity                int       `json:"quantity"`
+	Iva                     float32   `json:"iva"`
+	Internal_Tax            float32   `json:"internal_tax"`
+	Category_Profit_Percent *float64  `json:"category_profit_percent,omitempty"`
+	Created_at              time.Time `json:"created_at"`
+	Updated_at              time.Time `json:"updated_at"`
+	Category_Name           *string   `json:"category_name,omitempty"`
+	Provider_Name           *string   `json:"provider,omitempty"`
 }
 
 type Provider struct {
-	Id           int       `json:"id,omitempty"`
-	Name         string    `json:"name,omitempty"`
-	Phone_number string    `json:"phone_number,omitempty"`
-	Created_at   time.Time `json:"created_at,omitempty"`
-	Updated_at   time.Time `json:"updated_at,omitempty"`
+	Id           int       `json:"id"`
+	Name         string    `json:"name"`
+	Phone_number string    `json:"phone_number"`
+	Created_at   time.Time `json:"created_at"`
+	Updated_at   time.Time `json:"updated_at"`
 }
 
 type Category struct {
-	Id             int       `json:"id,omitempty"`
-	Name           string    `json:"name,omitempty"`
-	Profit_percent float32   `json:"profit_percent,omitempty"`
-	Created_at     time.Time `json:"created_at,omitempty"`
-	Updated_at     time.Time `json:"updated_at,omitempty"`
+	Id             int       `json:"id"`
+	Name           string    `json:"name"`
+	Profit_percent float32   `json:"profit_percent"`
+	Created_at     time.Time `json:"created_at"`
+	Updated_at     time.Time `json:"updated_at"`
 }
 
 func (a *App) Database() error {
@@ -85,7 +86,6 @@ func (a *App) Database() error {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        INSERT OR IGNORE INTO provider(id, name, phone_number) VALUES (999, 'Ninguno', '0000-0000');
         `
 
 	createCategoryTableQuery := `
@@ -93,51 +93,68 @@ func (a *App) Database() error {
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             profit_percent REAL,
-            CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        INSERT OR IGNORE INTO category(id, name, profit_percent) VALUES (999, 'Ninguna', 1);
         `
 	createProductTableQuery := `
-        CREATE TABLE IF NOT EXISTS product (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            original_cost_price REAL NOT NULL,
-            unit_cost_price REAL,
-            unit_sell_price REAL,
-            quantity INTEGER NOT NULL,
-            iva REAL,
-            internal_tax REAL,
-            category_id INTEGER,
-            provider_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (category_id) REFERENCES category(id),
-            FOREIGN KEY (provider_id) REFERENCES provider(id)
-        )
-        `
+            CREATE TABLE IF NOT EXISTS product (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                original_cost_price REAL NOT NULL,
+                unit_cost_price REAL,
+                unit_sell_price REAL,
+                profit_percent REAL,
+                quantity INTEGER NOT NULL,
+                iva REAL NOT NULL,
+                internal_tax REAL DEFAULT 0,
+                category_id INTEGER NULL,
+                provider_id INTEGER NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES category(id),
+                FOREIGN KEY (provider_id) REFERENCES provider(id)
+            )
+            `
+
 	createUpdateTrigger := `
         CREATE TRIGGER IF NOT EXISTS update_unit_prices_trigger
-        AFTER UPDATE OF name, original_cost_price, quantity, iva, internal_tax, category_id, provider_id
-        ON product
-        FOR EACH ROW
-        WHEN NEW.unit_sell_price IS NULL OR OLD.unit_sell_price = NEW.unit_sell_price
-        BEGIN
-            UPDATE product SET
-                unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
-                unit_sell_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity * (1 + (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id))
-            WHERE id = NEW.id;
-        END;
-        `
+            AFTER UPDATE OF name, original_cost_price, quantity, iva, internal_tax, category_id, provider_id
+            ON product
+            FOR EACH ROW
+            WHEN NEW.unit_sell_price IS NULL OR OLD.unit_sell_price = NEW.unit_sell_price
+            BEGIN
+                UPDATE product SET
+                    unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
+                    unit_sell_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity *
+                    (
+                      CASE
+                        WHEN NEW.category_id IS NULL OR (SELECT profit_percent FROM category WHERE id = NEW.category_id) = 0 THEN (1 + NEW.profit_percent / 100)
+                        ELSE (1 + (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id))
+                      END
+                    )
+                WHERE id = NEW.id;
+            END;
+            `
 	createInsertTrigger := `
-        CREATE TRIGGER IF NOT EXISTS product_insert_trigger
-        AFTER INSERT ON product
-        BEGIN
-        UPDATE product SET
-          unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
-          unit_sell_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity * (1 + (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id))
-        WHERE id = NEW.id;
-        END;
+    CREATE TRIGGER IF NOT EXISTS product_insert_trigger
+AFTER INSERT ON product
+BEGIN
+  UPDATE product SET
+    unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
+    unit_sell_price = 
+  CASE
+    WHEN NEW.category_id IS NULL OR (SELECT profit_percent FROM category WHERE id = NEW.category_id) = 0 THEN (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity
+    ELSE (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity * (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id)
+  END
+  WHERE id = NEW.id;
+  
+  -- If unit_sell_price is still null, set it to unit_cost_price / quantity
+  UPDATE product SET
+    unit_sell_price = unit_cost_price / quantity
+  WHERE id = NEW.id AND unit_sell_price IS NULL;
+END;
+
         `
 	createPriceUpdateTriggerQuery := `
         CREATE TRIGGER IF NOT EXISTS update_sell_price_on_category_update
@@ -178,7 +195,7 @@ func (a *App) Database() error {
 }
 func (a *App) CreateProduct(product Product) error {
 	query := `
-    INSERT INTO product (name, original_cost_price, unit_sell_price, category_id, provider_id, quantity, iva, internal_tax) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO product (name, original_cost_price, category_id, provider_id, quantity, iva, internal_tax) VALUES (?, ?, ?, ?, ?, ?, ?)
    `
 
 	statement, err := a.db.Prepare(query)
@@ -190,7 +207,6 @@ func (a *App) CreateProduct(product Product) error {
 	result, err := statement.Exec(
 		product.Name,
 		product.Original_cost_price,
-		product.Unit_Cost_price,
 		product.Category_id,
 		product.Provider_id,
 		product.Quantity,
@@ -229,16 +245,17 @@ func (a *App) GetProductById(id int) (*Product, error) {
 
 func (a *App) GetAllProducts() ([]ProductWithCategoryAndProvider, error) {
 	query := `
-    SELECT product.id, product.name, product.original_cost_price, product.unit_cost_price, product.unit_sell_price, 
-       product.category_id, product.provider_id, product.quantity, product.iva, 
-       product.internal_tax, 
-       product.created_at, product.updated_at,
-       category.name,
-       category.profit_percent, provider.name
-    FROM product 
-    INNER JOIN category ON product.category_id = category.id 
-    INNER JOIN provider ON product.provider_id = provider.id;
-        `
+        SELECT product.id, product.name, product.original_cost_price, product.unit_cost_price, product.unit_sell_price, 
+               product.category_id, product.provider_id, product.quantity, product.iva, 
+               product.internal_tax, 
+               product.created_at, product.updated_at,
+               COALESCE(category.name, 'Ninguna'),
+               COALESCE(category.profit_percent, 0.0),
+               COALESCE(provider.name, 'Ninguno')
+        FROM product 
+        LEFT JOIN category ON product.category_id = category.id 
+        LEFT JOIN provider ON product.provider_id = provider.id;
+    `
 	var products []ProductWithCategoryAndProvider
 	rows, err := a.db.Query(query)
 	if err != nil {
@@ -250,14 +267,12 @@ func (a *App) GetAllProducts() ([]ProductWithCategoryAndProvider, error) {
 		var product ProductWithCategoryAndProvider
 		if err := rows.Scan(&product.Id, &product.Name, &product.Original_cost_price, &product.Unit_Cost_price, &product.Unit_Sell_price, &product.Category_id, &product.Provider_id, &product.Quantity, &product.Iva, &product.Internal_Tax, &product.Created_at, &product.Updated_at, &product.Category_Name, &product.Category_Profit_Percent, &product.Provider_Name); err != nil {
 			return nil, fmt.Errorf("Error scanning provider: %w", err)
-
 		}
 		products = append(products, product)
 	}
 
 	return products, nil
 }
-
 func (a *App) DeleteProductById(id int) error {
 	query := `DELETE FROM product WHERE id = ?`
 	statement, err := a.db.Prepare(query)
@@ -458,7 +473,7 @@ func (a *App) UpdateCategoryById(id int, category Category) error {
 }
 
 func (a *App) GetAllProviders() ([]Provider, error) {
-	query := `SELECT * FROM provider ORDER BY id`
+	query := `SELECT id, name, COALESCE(phone_number, " "), created_at, updated_at FROM provider ORDER BY id`
 	var providers []Provider
 	rows, err := a.db.Query(query)
 	if err != nil {

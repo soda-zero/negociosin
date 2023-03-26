@@ -1,18 +1,45 @@
-import {
-  GetAllCategories,
-  GetAllProducts,
-  GetAllProviders,
-} from "$wails/go/backend/App";
 import { writable } from "svelte/store";
+import { GetAllProducts, GetAllProviders, GetAllCategories } from "$wails/go/backend/App";
 
-export const productsStore = writable([]);
-export const providerStore = writable([]);
-export const categoryStore = writable([]);
+// Cache the data to avoid making unnecessary API requests
+let cachedProducts = [];
+let cachedProviders = [];
+let cachedCategories = [];
+
+export const productsStore = writable(cachedProducts);
+export const providerStore = writable(cachedProviders);
+export const categoryStore = writable(cachedCategories);
+
+// Handle errors when fetching data
 export async function loadProducts() {
-  const products = await GetAllProducts();
-  const providers = await GetAllProviders();
-  const categories = await GetAllCategories();
-  providerStore.set(providers);
-  categoryStore.set(categories);
-  productsStore.set(products);
+  try {
+    const products = await GetAllProducts();
+    cachedProducts = products;
+    productsStore.set(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    // Optionally, you could add some UI feedback to indicate the error to the user
+  }
+}
+
+export async function loadProviders() {
+  try {
+    const providers = await GetAllProviders();
+    cachedProviders = providers;
+    providerStore.set(providers);
+  } catch (error) {
+    console.error("Error fetching providers:", error);
+    // Optionally, you could add some UI feedback to indicate the error to the user
+  }
+}
+
+export async function loadCategory() {
+  try {
+    const categories = await GetAllCategories();
+    cachedCategories = categories;
+    categoryStore.set(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    // Optionally, you could add some UI feedback to indicate the error to the user
+  }
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
     import {
+        Accordion,
+        AccordionItem,
         modalStore,
         type ModalComponent,
         type ModalSettings,
@@ -11,22 +12,61 @@
     import EditIcon from "./icons/EditIcon.svelte";
     import TrashIcon from "./icons/TrashIcon.svelte";
     import UpdateProductModal from "./modals/UpdateProductModal.svelte";
+    import FilterIcon from "./icons/FilterIcon.svelte";
+    import TagIcon from "./icons/TagIcon.svelte";
+    import TruckIcon from "./icons/TruckIcon.svelte";
+    import MagnifyingGlass from "./icons/MagnifyingGlass.svelte";
+    import { onMount } from "svelte";
+    import CreateProductModal from "./modals/CreateProductModal.svelte";
+    import PlusIcon from "./icons/PlusIcon.svelte";
+
+    let searchQuery = "";
+    let products: backend.ProductWithCategoryAndProvider[] = [];
+    $: products = $productsStore;
+
+    let providers: string[] = [];
+    let categories: string[] = [];
+    let filteredProducts: backend.ProductWithCategoryAndProvider[] = [];
+
+    async function initializeData() {
+        await loadProducts();
+        filteredProducts = products;
+        if (products) {
+            providers = [
+                ...new Set(products.map((product) => product.provider)),
+            ];
+            categories = [
+                ...new Set(products.map((product) => product.category_name)),
+            ];
+        }
+    }
+
+    onMount(async () => {
+        await initializeData();
+    });
 
     function roundPrice(num: number) {
         const roundedNum = Math.round(num * 2) / 2;
         return roundedNum;
     }
-    let productsList: backend.ProductWithCategoryAndProvider[] = [];
-    let filteredProductsList: backend.ProductWithCategoryAndProvider[] = [];
-    let searchQuery: string = "";
-    const unsubscribe = productsStore.subscribe((products) => {
-        productsList = products;
-        if (productsList !== null) {
-            filterProducts();
-        }
-    });
 
-    async function DeleteProduct(id: number) {
+    function createProduct() {
+        const c: ModalComponent = {
+            ref: CreateProductModal,
+        };
+        const d: ModalSettings = {
+            buttonTextCancel: "X",
+            type: "component",
+            component: c,
+            response: async () => {
+                await loadProducts();
+                filterProducts();
+            },
+        };
+        modalStore.trigger(d);
+    }
+
+    function deleteProduct(id: number) {
         const confirm: ModalSettings = {
             type: "confirm",
             title: "Eliminar producto",
@@ -36,21 +76,14 @@
             response: async (confirmed: boolean) => {
                 if (confirmed) {
                     await DeleteProductById(id);
-                    const index = productsList.findIndex(
-                        (product) => product.id === id
-                    );
-                    if (index !== -1) {
-                        productsList.splice(index, 1);
-                        filterProducts();
-                    }
                     await loadProducts();
+                    filterProducts();
                 }
             },
         };
         modalStore.trigger(confirm);
     }
-
-    function EditProduct(product: backend.ProductWithCategoryAndProvider) {
+    function editProduct(product: backend.ProductWithCategoryAndProvider) {
         const c: ModalComponent = {
             ref: UpdateProductModal,
             props: { product },
@@ -60,57 +93,164 @@
             type: "component",
             component: c,
             title: "Edit Product",
+            response: async () => {
+                await loadProducts();
+                filterProducts();
+            },
         };
         modalStore.trigger(d);
     }
 
+    let selectedProviders: string[] = [];
+    let selectedCategories: string[] = [];
+
+    function toggleSelectedProvider(provider: string) {
+        const index = selectedProviders.indexOf(provider);
+        if (index !== -1) {
+            selectedProviders.splice(index, 1);
+        } else {
+            selectedProviders.push(provider);
+        }
+        filterProducts();
+    }
+
+    function toggleSelectedCategory(category: string) {
+        const index = selectedCategories.indexOf(category);
+        if (index !== -1) {
+            selectedCategories.splice(index, 1);
+        } else {
+            selectedCategories.push(category);
+        }
+        filterProducts();
+    }
+
     function filterProducts() {
-        filteredProductsList = productsList.filter((product) => {
-            const updatedAt = new Date(product.updated_at);
+        if (!products) {
+            products = [];
+        }
+        filteredProducts = products.filter((product) => {
             return (
-                product.name
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                product.provider
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                product.unit_cost_price
-                    .toString()
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                updatedAt
-                    .toLocaleString()
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                product.unit_sell_price
-                    .toString()
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase()) ||
-                product.category_name
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase())
+                filterByName(product) ||
+                filterByProvider(product) ||
+                filterByPrice(product) ||
+                filterByCategory(product) ||
+                filterByUpdatedAt(product)
             );
         });
     }
-    onMount(() => {
-        loadProducts();
-    });
-    onDestroy(() => {
-        unsubscribe();
-    });
+
+    function filterByName(product: backend.ProductWithCategoryAndProvider) {
+        return product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+
+    function filterByProvider(product: backend.ProductWithCategoryAndProvider) {
+        return (
+            selectedProviders.length === 0 ||
+            selectedProviders.includes(product.provider)
+        );
+    }
+
+    function filterByCategory(product: backend.ProductWithCategoryAndProvider) {
+        return (
+            selectedCategories.length === 0 ||
+            selectedCategories.includes(product.category_name)
+        );
+    }
+
+    function filterByPrice(product: backend.ProductWithCategoryAndProvider) {
+        return (
+            product.unit_cost_price
+                .toString()
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+            product.unit_sell_price
+                .toString()
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+        );
+    }
+
+    function filterByUpdatedAt(
+        product: backend.ProductWithCategoryAndProvider
+    ) {
+        const updatedAt = new Date(product.updated_at);
+        return updatedAt
+            .toLocaleString()
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+    }
 </script>
 
+<button class="btn  variant-filled-primary" on:click={createProduct}
+    >Agregar Producto <PlusIcon /></button
+>
+<div class=" card ">
+    <Accordion>
+        <AccordionItem>
+            <svelte:fragment slot="lead"><FilterIcon /></svelte:fragment>
+            <svelte:fragment slot="summary">Filtrar</svelte:fragment>
+            <svelte:fragment slot="content">
+                <AccordionItem>
+                    <svelte:fragment slot="lead"><TruckIcon /></svelte:fragment>
+                    <svelte:fragment slot="summary">Proveedores</svelte:fragment
+                    >
+                    <svelte:fragment slot="content">
+                        <div class="flex gap-2">
+                            {#if categories}
+                                {#each categories as category}
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value={category}
+                                            on:change={() =>
+                                                toggleSelectedCategory(
+                                                    category
+                                                )}
+                                        />
+                                        {category}
+                                    </label>
+                                {/each}
+                            {/if}
+                        </div>
+                    </svelte:fragment>
+                </AccordionItem>
+                <AccordionItem>
+                    <svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
+                    <svelte:fragment slot="summary">Categoría</svelte:fragment>
+                    <svelte:fragment slot="content">
+                        <div class="flex gap-2">
+                            {#if providers}
+                                {#each providers as provider}
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value={provider}
+                                            on:change={() =>
+                                                toggleSelectedProvider(
+                                                    provider
+                                                )}
+                                        />
+                                        {provider}
+                                    </label>
+                                {/each}
+                            {/if}
+                        </div>
+                    </svelte:fragment>
+                </AccordionItem>
+            </svelte:fragment>
+        </AccordionItem>
+    </Accordion>
+</div>
 <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
-    <div class="input-group-shim">Productos</div>
+    <div class="input-group-shim flex gap-2">
+        <MagnifyingGlass /> Productos
+    </div>
     <input
         type="search"
         placeholder="Buscar..."
         bind:value={searchQuery}
         on:input={filterProducts}
     />
-    <button class="variant-filled-secondary" on:click={filterProducts}
-        >Buscar</button
-    >
 </div>
 
 <div class="table-container shadow-xl">
@@ -119,45 +259,49 @@
             <tr>
                 <th>Cod</th>
                 <th>Nombre</th>
-                <th>Actualizado</th>
-                <th>Proveedor</th>
                 <th>Precio Costo Unitario</th>
                 <th>Precio Venta Unitario</th>
+                <th>Proveedor</th>
                 <th>Categoría</th>
+                <th>Actualizado</th>
                 <th />
             </tr>
         </thead>
         <tbody>
-            {#each filteredProductsList as product}
-                <tr>
-                    <td>{product.id}</td>
-                    <td class="capitalize">{product.name.toLowerCase()}</td>
-                    <td>{new Date(product.updated_at).toLocaleString()}</td>
-                    <td class="capitalize">{product.provider.toLowerCase()}</td>
-                    <td>{product.unit_cost_price}</td>
-                    <td
-                        >{`${roundPrice(product.unit_sell_price)}${" "}(${
-                            product.category_profit_percent
-                        }%)`}
-                    </td>
-                    <td class="capitalize"
-                        >{product.category_name.toLowerCase()}
-                    </td>
-                    <td
-                        ><button
-                            class=" bg-initial hover:text-success-400"
-                            on:click={() => EditProduct(product)}
-                            ><EditIcon /></button
+            {#if filteredProducts}
+                {#each filteredProducts as product}
+                    <tr>
+                        <td>{product.id}</td>
+                        <td class="capitalize">{product.name.toLowerCase()}</td>
+                        <td>{product.unit_cost_price}</td>
+                        <td
+                            >{`${roundPrice(product.unit_sell_price)}${" "}(${
+                                product.category_profit_percent
+                            }%)`}
+                        </td>
+                        <td class="capitalize"
+                            >{product.provider.toLowerCase()}</td
                         >
+                        <td class="capitalize"
+                            >{product.category_name.toLowerCase()}
+                        </td>
+                        <td>{new Date(product.updated_at).toLocaleString()}</td>
+                        <td class="flex"
+                            ><button
+                                class=" bg-initial hover:text-success-400"
+                                on:click={() => editProduct(product)}
+                                ><EditIcon /></button
+                            >
 
-                        <button
-                            class=" bg-initial hover:text-error-400"
-                            on:click={() => DeleteProduct(product.id)}
-                            ><TrashIcon /></button
-                        ></td
-                    >
-                </tr>
-            {/each}
+                            <button
+                                class=" bg-initial hover:text-error-400"
+                                on:click={() => deleteProduct(product.id)}
+                                ><TrashIcon /></button
+                            ></td
+                        >
+                    </tr>
+                {/each}
+            {/if}
         </tbody>
     </table>
 </div>

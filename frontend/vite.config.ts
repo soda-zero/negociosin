@@ -10,6 +10,7 @@ export default defineConfig({
       $lib: path.resolve("./src/lib/"),
       $components: path.resolve("./src/components/"),
       $wails: path.resolve("./wailsjs/"),
+      $models: path.resolve("./src/models/"),
     },
   },
 });
