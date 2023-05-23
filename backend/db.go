@@ -137,23 +137,23 @@ func (a *App) Database() error {
             END;
             `
 	createInsertTrigger := `
-    CREATE TRIGGER IF NOT EXISTS product_insert_trigger
-AFTER INSERT ON product
-BEGIN
-  UPDATE product SET
-    unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
-    unit_sell_price = 
-  CASE
-    WHEN NEW.category_id IS NULL OR (SELECT profit_percent FROM category WHERE id = NEW.category_id) = 0 THEN (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity
-    ELSE (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity * (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id)
-  END
-  WHERE id = NEW.id;
-  
-  -- If unit_sell_price is still null, set it to unit_cost_price / quantity
-  UPDATE product SET
-    unit_sell_price = unit_cost_price / quantity
-  WHERE id = NEW.id AND unit_sell_price IS NULL;
-END;
+        CREATE TRIGGER IF NOT EXISTS product_insert_trigger
+            AFTER INSERT ON product
+            BEGIN
+              UPDATE product SET
+                unit_cost_price = (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity,
+                unit_sell_price = 
+              CASE
+                WHEN NEW.category_id IS NULL OR (SELECT profit_percent FROM category WHERE id = NEW.category_id) = 0 THEN (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity
+                ELSE (NEW.original_cost_price + NEW.original_cost_price * NEW.iva / 100 + NEW.internal_tax) / NEW.quantity * (1 + (SELECT profit_percent / 100 FROM category WHERE id = NEW.category_id))
+              END
+              WHERE id = NEW.id;
+              
+              -- If unit_sell_price is still null, set it to unit_cost_price / quantity
+              UPDATE product SET
+                unit_sell_price = unit_cost_price / quantity
+              WHERE id = NEW.id AND unit_sell_price IS NULL;
+        END;
 
         `
 	createPriceUpdateTriggerQuery := `

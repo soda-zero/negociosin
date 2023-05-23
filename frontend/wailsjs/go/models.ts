@@ -4,9 +4,9 @@ export namespace backend {
 	    id: number;
 	    name: string;
 	    profit_percent: number;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
@@ -51,9 +51,9 @@ export namespace backend {
 	    quantity: number;
 	    iva: number;
 	    internal_tax: number;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {
@@ -106,9 +106,9 @@ export namespace backend {
 	    iva: number;
 	    internal_tax: number;
 	    category_profit_percent?: number;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at: any;
 	    category_name?: string;
 	    provider?: string;
@@ -158,9 +158,9 @@ export namespace backend {
 	    id: number;
 	    name: string;
 	    phone_number: string;
-	    // Go type: time.Time
+	    // Go type: time
 	    created_at: any;
-	    // Go type: time.Time
+	    // Go type: time
 	    updated_at: any;
 	
 	    static createFrom(source: any = {}) {

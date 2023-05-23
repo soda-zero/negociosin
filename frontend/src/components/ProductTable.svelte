@@ -28,9 +28,7 @@
     let categories: string[] = [];
     let filteredProducts: backend.ProductWithCategoryAndProvider[] = [];
 
-    async function initializeData() {
-        await loadProducts();
-        filteredProducts = products;
+    function updateCategoriesAndProviders() {
         if (products) {
             providers = [
                 ...new Set(products.map((product) => product.provider)),
@@ -39,6 +37,15 @@
                 ...new Set(products.map((product) => product.category_name)),
             ];
         }
+        if (!products) {
+            providers = [];
+            categories = [];
+        }
+    }
+    async function initializeData() {
+        await loadProducts();
+        filteredProducts = products;
+        updateCategoriesAndProviders();
     }
 
     onMount(async () => {
@@ -60,6 +67,7 @@
             component: c,
             response: async () => {
                 await loadProducts();
+                updateCategoriesAndProviders();
                 filterProducts();
             },
         };
@@ -77,6 +85,7 @@
                 if (confirmed) {
                     await DeleteProductById(id);
                     await loadProducts();
+                    updateCategoriesAndProviders();
                     filterProducts();
                 }
             },
@@ -95,6 +104,7 @@
             title: "Edit Product",
             response: async () => {
                 await loadProducts();
+                await updateCategoriesAndProviders();
                 filterProducts();
             },
         };
@@ -123,38 +133,44 @@
         }
         filterProducts();
     }
-
     function filterProducts() {
         if (!products) {
             products = [];
         }
+
         filteredProducts = products.filter((product) => {
+            const selectedProvider =
+                selectedProviders.length === 0 ||
+                selectedProviders.includes(product.provider);
+            const selectedCategory =
+                selectedCategories.length === 0 ||
+                selectedCategories.includes(product.category_name);
+
             return (
-                filterByName(product) ||
-                filterByProvider(product) ||
-                filterByPrice(product) ||
-                filterByCategory(product) ||
-                filterByUpdatedAt(product)
+                (!selectedProviders.length || selectedProvider) &&
+                (!selectedCategories.length || selectedCategory) &&
+                (filterByName(product) ||
+                    filterByProvider(product) ||
+                    filterByCategory(product) ||
+                    filterByPrice(product) ||
+                    filterByUpdatedAt(product))
             );
         });
     }
-
     function filterByName(product: backend.ProductWithCategoryAndProvider) {
         return product.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
 
     function filterByProvider(product: backend.ProductWithCategoryAndProvider) {
-        return (
-            selectedProviders.length === 0 ||
-            selectedProviders.includes(product.provider)
-        );
+        return product.provider
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
     }
 
     function filterByCategory(product: backend.ProductWithCategoryAndProvider) {
-        return (
-            selectedCategories.length === 0 ||
-            selectedCategories.includes(product.category_name)
-        );
+        return product.category_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
     }
 
     function filterByPrice(product: backend.ProductWithCategoryAndProvider) {
@@ -196,29 +212,6 @@
                     >
                     <svelte:fragment slot="content">
                         <div class="flex gap-2">
-                            {#if categories}
-                                {#each categories as category}
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            value={category}
-                                            on:change={() =>
-                                                toggleSelectedCategory(
-                                                    category
-                                                )}
-                                        />
-                                        {category}
-                                    </label>
-                                {/each}
-                            {/if}
-                        </div>
-                    </svelte:fragment>
-                </AccordionItem>
-                <AccordionItem>
-                    <svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
-                    <svelte:fragment slot="summary">Categoría</svelte:fragment>
-                    <svelte:fragment slot="content">
-                        <div class="flex gap-2">
                             {#if providers}
                                 {#each providers as provider}
                                     <label>
@@ -231,6 +224,29 @@
                                                 )}
                                         />
                                         {provider}
+                                    </label>
+                                {/each}
+                            {/if}
+                        </div>
+                    </svelte:fragment>
+                </AccordionItem>
+                <AccordionItem>
+                    <svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
+                    <svelte:fragment slot="summary">Categoría</svelte:fragment>
+                    <svelte:fragment slot="content">
+                        <div class="flex gap-2">
+                            {#if categories}
+                                {#each categories as category}
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value={category}
+                                            on:change={() =>
+                                                toggleSelectedCategory(
+                                                    category
+                                                )}
+                                        />
+                                        {category}
                                     </label>
                                 {/each}
                             {/if}
@@ -305,3 +321,4 @@
         </tbody>
     </table>
 </div>
+

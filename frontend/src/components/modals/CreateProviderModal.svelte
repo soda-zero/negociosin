@@ -34,7 +34,7 @@
             on:click={parent.onClose}>{parent.buttonTextCancel}</button
         >
     </div>
-    <h2>Modificar Proveedor</h2>
+    <h2>Agregar Proveedor</h2>
     <div>
         <label
             class={`${errors.name ? "text-error-500 flex flex-col" : ""} label`}
@@ -74,6 +74,6 @@
         </label>
     </div>
     <button type="submit" class="w-full btn btn- variant-filled-secondary"
-        >Modificar</button
+        >Agregar</button
     >
 </form>
